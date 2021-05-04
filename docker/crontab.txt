@@ -1,0 +1,2 @@
+* * * * * /usr/local/bin/php /var/www/html/artisan schedule:run >> /dev/null 2>&1
+# IMPORTANT - Do not delete this line. Also, it must be the last line of the file.

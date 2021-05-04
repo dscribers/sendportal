@@ -11,9 +11,10 @@
         "laravel/framework": "^8.0",
         "laravel/horizon": "^5.0",
         "laravel/tinker": "^2.5",
-        "livewire/livewire": "^2.3",
         "laravel/ui": "^3.0",
-        "mettle/sendportal-core": "^2.0"
+        "livewire/livewire": "^2.3",
+        "mettle/sendportal-core": "^2.0",
+        "predis/predis": "^1.1"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",

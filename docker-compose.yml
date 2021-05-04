@@ -1,0 +1,107 @@
+version: "3.7"
+
+services:
+  sendportal:
+    image: dscribe/sendportal
+    build:
+      context: .
+      args:
+        - PGID=${PGID}
+        - PUID=${PUID}
+    restart: unless-stopped
+    tty: true
+    environment:
+      - CACHE_DRIVER=redis
+      - DB_HOST=postgres
+      - QUEUE_DRIVER=redis
+      - REDIS_CLIENT=predis
+      - REDIS_HOST=redis
+      - SESSION_DRIVER=redis
+    ports:
+      - ${DEV_PORT}:80
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - .:/var/www/html
+      - misc-data:/home/dscribe/.composer
+    networks:
+      - internal
+      - external
+
+  cronjobs:
+    image: dscribe/sendportal-cronjobs
+    build:
+      context: .
+      args:
+        - PGID=${PGID}
+        - PUID=${PUID}
+        - CRONJOBS=true
+    command: crond -f
+    volumes:
+      - .:/var/www/html:cached
+      - misc-data:/home/dscribe/.composer
+    restart: on-failure
+    depends_on:
+      - postgres
+    networks:
+      - internal
+
+  horizon:
+    image: dscribe/sendportal
+    build:
+      context: .
+      args:
+        - PGID=${PGID}
+        - PUID=${PUID}
+    command: php artisan horizon
+    volumes:
+      - .:/var/www/html:cached
+      - misc-data:/home/dscribe/.composer
+    restart: on-failure
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - internal
+
+  redis:
+    image: redis:4-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:alpine
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - internal
+
+  # adminer:
+  #   image: adminer:latest
+  #   ports:
+  #     - "${ADMINER_PORT}:8080"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - internal
+
+volumes:
+  redis-data:
+  db-data:
+  misc-data:
+
+networks:
+  internal:
+    name: sendportal_internal
+  external:
+    name: sendportal
